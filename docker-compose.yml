@@ -12,6 +12,6 @@ services:
     command: flask run --host=0.0.0.0
 
   static:
-    build: ./static_site
+    build: ./docs
     ports:
       - "8080:80"

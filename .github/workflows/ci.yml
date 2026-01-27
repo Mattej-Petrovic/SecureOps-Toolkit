@@ -71,8 +71,8 @@ jobs:
     - name: Build Nginx static site Docker image
       uses: docker/build-push-action@v4
       with:
-        context: ./static_site
-        file: ./static_site/Dockerfile
+        context: ./docs
+        file: ./docs/Dockerfile
         push: false
         tags: devsecops-static:latest
         cache-from: type=gha
