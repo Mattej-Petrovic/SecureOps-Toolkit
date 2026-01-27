@@ -35,7 +35,7 @@ class LogAnalyzerRules:
         if failed_logins['count'] > 5:
             severity = 'high' if failed_logins['count'] > 20 else 'medium'
             findings.append({
-                'rule_name': 'Repeated Failed Login Attempts',
+                'rule_name': 'Upprepade misslyckade inloggningar',
                 'description': f"Detected {failed_logins['count']} failed login attempts",
                 'severity': severity,
                 'matched_lines': matched_lines
@@ -70,7 +70,7 @@ class LogAnalyzerRules:
         
         if len(ssh_failures) > 3:
             findings.append({
-                'rule_name': 'SSH Authentication Failures',
+                'rule_name': 'SSH autentiseringsfel',
                 'description': f"Detected {len(ssh_failures)} SSH authentication failures",
                 'severity': 'medium',
                 'matched_lines': ssh_failures[:5]
@@ -92,7 +92,7 @@ class LogAnalyzerRules:
         
         if len(sudo_lines) > 0:
             findings.append({
-                'rule_name': 'Sudo Command Execution',
+                'rule_name': 'Sudo-kommandokörning',
                 'description': f"Detected {len(sudo_lines)} sudo executions",
                 'severity': 'low',
                 'matched_lines': sudo_lines[:5]
@@ -129,7 +129,7 @@ class LogAnalyzerRules:
         
         if len(account_changes) > 0:
             findings.append({
-                'rule_name': 'User Account Changes',
+                'rule_name': 'Ändringar av användarkonton',
                 'description': f"Detected {len(account_changes)} user account modifications",
                 'severity': 'medium',
                 'matched_lines': account_changes[:5]
@@ -162,7 +162,7 @@ class LogAnalyzerRules:
         
         if suspicious_ips:
             findings.append({
-                'rule_name': 'Suspicious IP Addresses',
+                'rule_name': 'Misstänkta IP-adresser',
                 'description': f"Detected {len(suspicious_ips)} IP addresses with suspicious activity",
                 'severity': 'high',
                 'matched_lines': matched_lines
@@ -197,7 +197,7 @@ class LogAnalyzerRules:
         if connection_attempts['count'] > 10:
             severity = 'high' if connection_attempts['count'] > 30 else 'medium'
             findings.append({
-                'rule_name': 'Brute-Force Indicators',
+                'rule_name': 'Brute-force-indikationer',
                 'description': f"Detected {connection_attempts['count']} connection attempts",
                 'severity': severity,
                 'matched_lines': matched_lines
