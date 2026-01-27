@@ -1,0 +1,833 @@
+[
+  {
+    "id": 1,
+    "name": "docker run",
+    "category": "Docker",
+    "workflow": "Docker Deployment",
+    "description": "Create and run a new container from an image",
+    "command": "docker run [OPTIONS] IMAGE [COMMAND]",
+    "examples": [
+      "docker run -d -p 8080:80 nginx",
+      "docker run -it ubuntu bash",
+      "docker run --name myapp -e ENV_VAR=value myimage"
+    ],
+    "tags": ["container", "basic"],
+    "flags": [
+      {"flag": "-d", "description": "Run container in background (detached)"},
+      {"flag": "-it", "description": "Interactive terminal"},
+      {"flag": "-p HOST:CONTAINER", "description": "Port mapping"},
+      {"flag": "--name", "description": "Assign container name"},
+      {"flag": "-e", "description": "Set environment variable"},
+      {"flag": "-v", "description": "Mount volume"},
+      {"flag": "--rm", "description": "Remove container on exit"},
+      {"flag": "-u", "description": "Set user inside container"}
+    ]
+  },
+  {
+    "id": 2,
+    "name": "docker build",
+    "category": "Docker",
+    "workflow": "Docker Deployment",
+    "description": "Build a Docker image from a Dockerfile",
+    "command": "docker build -t [IMAGE_NAME]:[TAG] [PATH]",
+    "examples": [
+      "docker build -t myapp:1.0 .",
+      "docker build -t registry.io/myapp:latest -f ./docker/Dockerfile .",
+      "docker build --no-cache -t app:dev ."
+    ],
+    "tags": ["image", "build"],
+    "flags": [
+      {"flag": "-t", "description": "Tag image with name and optional tag"},
+      {"flag": "-f", "description": "Path to Dockerfile"},
+      {"flag": "--no-cache", "description": "Do not use cache when building"},
+      {"flag": "--build-arg", "description": "Set build-time variables"}
+    ]
+  },
+  {
+    "id": 3,
+    "name": "docker ps",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "List all running or stopped containers",
+    "command": "docker ps [OPTIONS]",
+    "examples": [
+      "docker ps",
+      "docker ps -a",
+      "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Status}}'"
+    ],
+    "tags": ["container", "list"],
+    "flags": [
+      {"flag": "-a", "description": "Show all containers (default shows running only)"},
+      {"flag": "-q", "description": "Only display container IDs"},
+      {"flag": "--filter", "description": "Filter output"},
+      {"flag": "--format", "description": "Pretty-print output using template"}
+    ]
+  },
+  {
+    "id": 4,
+    "name": "docker logs",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Display logs from a container",
+    "command": "docker logs [OPTIONS] CONTAINER",
+    "examples": [
+      "docker logs mycontainer",
+      "docker logs -f mycontainer",
+      "docker logs --tail 50 mycontainer"
+    ],
+    "tags": ["debug", "container"],
+    "flags": [
+      {"flag": "-f", "description": "Follow log output (like tail -f)"},
+      {"flag": "--tail", "description": "Show only last N lines"},
+      {"flag": "-t", "description": "Show timestamps"},
+      {"flag": "--since", "description": "Show logs since timestamp or duration"}
+    ]
+  },
+  {
+    "id": 5,
+    "name": "docker exec",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Run a command inside a running container",
+    "command": "docker exec [OPTIONS] CONTAINER COMMAND",
+    "examples": [
+      "docker exec -it mycontainer bash",
+      "docker exec mycontainer ps aux",
+      "docker exec -u root mycontainer apt-get update"
+    ],
+    "tags": ["container", "debug"],
+    "flags": [
+      {"flag": "-it", "description": "Interactive terminal"},
+      {"flag": "-u", "description": "Username or UID"},
+      {"flag": "-w", "description": "Working directory"}
+    ]
+  },
+  {
+    "id": 6,
+    "name": "docker pull",
+    "category": "Docker",
+    "workflow": "Image Management",
+    "description": "Download an image from a registry",
+    "command": "docker pull [OPTIONS] NAME[:TAG|@DIGEST]",
+    "examples": [
+      "docker pull ubuntu",
+      "docker pull ubuntu:20.04",
+      "docker pull registry.io/myimage:latest"
+    ],
+    "tags": ["image", "registry"],
+    "flags": [
+      {"flag": "-a", "description": "Download all tagged images"}
+    ]
+  },
+  {
+    "id": 7,
+    "name": "docker images",
+    "category": "Docker",
+    "workflow": "Image Management",
+    "description": "List images stored locally",
+    "command": "docker images [OPTIONS] [REPOSITORY[:TAG]]",
+    "examples": [
+      "docker images",
+      "docker images ubuntu",
+      "docker images --format 'table {{.Repository}}\\t{{.Tag}}\\t{{.Size}}'"
+    ],
+    "tags": ["image", "list"],
+    "flags": [
+      {"flag": "-a", "description": "Show all images (including intermediate)"},
+      {"flag": "-q", "description": "Only show image IDs"},
+      {"flag": "--filter", "description": "Filter output"},
+      {"flag": "--format", "description": "Pretty-print output"}
+    ]
+  },
+  {
+    "id": 8,
+    "name": "docker rmi",
+    "category": "Docker",
+    "workflow": "Image Management",
+    "description": "Remove one or more images",
+    "command": "docker rmi [OPTIONS] IMAGE [IMAGE...]",
+    "examples": [
+      "docker rmi myimage:latest",
+      "docker rmi -f myimage",
+      "docker rmi $(docker images -q)"
+    ],
+    "tags": ["image", "cleanup"],
+    "flags": [
+      {"flag": "-f", "description": "Force removal even if container uses it"}
+    ]
+  },
+  {
+    "id": 9,
+    "name": "docker rm",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Remove one or more containers",
+    "command": "docker rm [OPTIONS] CONTAINER [CONTAINER...]",
+    "examples": [
+      "docker rm mycontainer",
+      "docker rm -f mycontainer",
+      "docker rm $(docker ps -aq)"
+    ],
+    "tags": ["container", "cleanup"],
+    "flags": [
+      {"flag": "-f", "description": "Force removal of running container"},
+      {"flag": "-v", "description": "Remove associated volumes"}
+    ]
+  },
+  {
+    "id": 10,
+    "name": "docker stop",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Stop running containers gracefully",
+    "command": "docker stop [OPTIONS] CONTAINER [CONTAINER...]",
+    "examples": [
+      "docker stop mycontainer",
+      "docker stop -t 10 mycontainer",
+      "docker stop $(docker ps -q)"
+    ],
+    "tags": ["container", "lifecycle"],
+    "flags": [
+      {"flag": "-t", "description": "Seconds to wait before killing (default 10)"}
+    ]
+  },
+  {
+    "id": 11,
+    "name": "docker start",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Start stopped containers",
+    "command": "docker start [OPTIONS] CONTAINER [CONTAINER...]",
+    "examples": [
+      "docker start mycontainer",
+      "docker start -a mycontainer",
+      "docker start -ai mycontainer"
+    ],
+    "tags": ["container", "lifecycle"],
+    "flags": [
+      {"flag": "-a", "description": "Attach STDOUT/STDERR"},
+      {"flag": "-i", "description": "Attach STDIN"}
+    ]
+  },
+  {
+    "id": 12,
+    "name": "docker inspect",
+    "category": "Docker",
+    "workflow": "Container Management",
+    "description": "Display detailed information about containers or images",
+    "command": "docker inspect [OPTIONS] NAME|ID [NAME|ID...]",
+    "examples": [
+      "docker inspect mycontainer",
+      "docker inspect --format='{{.NetworkSettings.IPAddress}}' mycontainer",
+      "docker inspect myimage"
+    ],
+    "tags": ["debug", "inspect"],
+    "flags": [
+      {"flag": "-f", "description": "Format output using template"},
+      {"flag": "--type", "description": "Return JSON for specified type (container, image, node, etc.)"}
+    ]
+  },
+  {
+    "id": 13,
+    "name": "docker network ls",
+    "category": "Docker",
+    "workflow": "Networking",
+    "description": "List Docker networks",
+    "command": "docker network ls [OPTIONS]",
+    "examples": [
+      "docker network ls",
+      "docker network ls --filter driver=bridge"
+    ],
+    "tags": ["network"],
+    "flags": [
+      {"flag": "--filter", "description": "Filter output"},
+      {"flag": "--format", "description": "Pretty-print output"}
+    ]
+  },
+  {
+    "id": 14,
+    "name": "docker volume ls",
+    "category": "Docker",
+    "workflow": "Storage",
+    "description": "List Docker volumes",
+    "command": "docker volume ls [OPTIONS]",
+    "examples": [
+      "docker volume ls",
+      "docker volume ls --filter dangling=true"
+    ],
+    "tags": ["volume", "storage"],
+    "flags": [
+      {"flag": "--filter", "description": "Filter output"},
+      {"flag": "--format", "description": "Pretty-print output"}
+    ]
+  },
+  {
+    "id": 15,
+    "name": "docker-compose up",
+    "category": "Docker",
+    "workflow": "Docker Compose",
+    "description": "Create and start services defined in docker-compose.yml",
+    "command": "docker-compose up [OPTIONS] [SERVICE...]",
+    "examples": [
+      "docker-compose up",
+      "docker-compose up -d",
+      "docker-compose up --build"
+    ],
+    "tags": ["compose", "multi-container"],
+    "flags": [
+      {"flag": "-d", "description": "Detached mode"},
+      {"flag": "--build", "description": "Build images before starting"},
+      {"flag": "-f", "description": "Specify compose file path"}
+    ]
+  },
+  {
+    "id": 16,
+    "name": "docker-compose down",
+    "category": "Docker",
+    "workflow": "Docker Compose",
+    "description": "Stop and remove services defined in docker-compose.yml",
+    "command": "docker-compose down [OPTIONS]",
+    "examples": [
+      "docker-compose down",
+      "docker-compose down -v",
+      "docker-compose down --remove-orphans"
+    ],
+    "tags": ["compose", "cleanup"],
+    "flags": [
+      {"flag": "-v", "description": "Remove named volumes"},
+      {"flag": "--remove-orphans", "description": "Remove services not in compose file"}
+    ]
+  },
+  {
+    "id": 17,
+    "name": "git init",
+    "category": "Git Bash",
+    "workflow": "Repository Setup",
+    "description": "Initialize a new Git repository",
+    "command": "git init [REPOSITORY]",
+    "examples": [
+      "git init",
+      "git init my-project",
+      "git init --bare myrepo.git"
+    ],
+    "tags": ["repo", "setup"],
+    "flags": [
+      {"flag": "--bare", "description": "Create bare repository (no working directory)"}
+    ]
+  },
+  {
+    "id": 18,
+    "name": "git clone",
+    "category": "Git Bash",
+    "workflow": "Repository Setup",
+    "description": "Clone an existing Git repository",
+    "command": "git clone [OPTIONS] REPOSITORY",
+    "examples": [
+      "git clone https://github.com/user/repo.git",
+      "git clone git@github.com:user/repo.git",
+      "git clone -b develop https://github.com/user/repo.git"
+    ],
+    "tags": ["repo", "download"],
+    "flags": [
+      {"flag": "-b", "description": "Clone specific branch"},
+      {"flag": "--depth", "description": "Create shallow clone with history to N commits"},
+      {"flag": "-q", "description": "Quiet mode"}
+    ]
+  },
+  {
+    "id": 19,
+    "name": "git status",
+    "category": "Git Bash",
+    "workflow": "Committing Changes",
+    "description": "Show current working tree status",
+    "command": "git status [OPTIONS]",
+    "examples": [
+      "git status",
+      "git status -s",
+      "git status --porcelain"
+    ],
+    "tags": ["status", "working-tree"],
+    "flags": [
+      {"flag": "-s", "description": "Short format"},
+      {"flag": "--porcelain", "description": "Machine-readable format"}
+    ]
+  },
+  {
+    "id": 20,
+    "name": "git add",
+    "category": "Git Bash",
+    "workflow": "Committing Changes",
+    "description": "Stage changes for commit",
+    "command": "git add [FILES]",
+    "examples": [
+      "git add .",
+      "git add src/main.py",
+      "git add -A"
+    ],
+    "tags": ["stage", "commit"],
+    "flags": [
+      {"flag": "-A", "description": "Stage all changes"},
+      {"flag": "-u", "description": "Stage all tracked file updates"},
+      {"flag": "-p", "description": "Interactive patch mode"}
+    ]
+  },
+  {
+    "id": 21,
+    "name": "git commit",
+    "category": "Git Bash",
+    "workflow": "Committing Changes",
+    "description": "Commit staged changes to the repository",
+    "command": "git commit [OPTIONS]",
+    "examples": [
+      "git commit -m 'Initial commit'",
+      "git commit -am 'Fix bug'",
+      "git commit --amend --no-edit"
+    ],
+    "tags": ["commit", "save"],
+    "flags": [
+      {"flag": "-m", "description": "Commit message"},
+      {"flag": "-a", "description": "Stage all tracked files and commit"},
+      {"flag": "--amend", "description": "Modify previous commit"},
+      {"flag": "--no-edit", "description": "Use previous commit message"}
+    ]
+  },
+  {
+    "id": 22,
+    "name": "git log",
+    "category": "Git Bash",
+    "workflow": "History",
+    "description": "Show commit history",
+    "command": "git log [OPTIONS]",
+    "examples": [
+      "git log",
+      "git log --oneline",
+      "git log --graph --all --decorate"
+    ],
+    "tags": ["history", "commits"],
+    "flags": [
+      {"flag": "--oneline", "description": "Condensed log format"},
+      {"flag": "--graph", "description": "Show branch graph"},
+      {"flag": "--all", "description": "Show all branches"},
+      {"flag": "-n", "description": "Show last N commits"}
+    ]
+  },
+  {
+    "id": 23,
+    "name": "git diff",
+    "category": "Git Bash",
+    "workflow": "History",
+    "description": "Show differences between commits, branches, or working tree",
+    "command": "git diff [OPTIONS] [COMMIT] [COMMIT]",
+    "examples": [
+      "git diff",
+      "git diff HEAD",
+      "git diff main..feature"
+    ],
+    "tags": ["diff", "changes"],
+    "flags": [
+      {"flag": "--staged", "description": "Show staged changes"},
+      {"flag": "-U", "description": "Lines of context (default 3)"}
+    ]
+  },
+  {
+    "id": 24,
+    "name": "git push",
+    "category": "Git Bash",
+    "workflow": "Syncing",
+    "description": "Push commits to remote repository",
+    "command": "git push [OPTIONS] [REMOTE] [BRANCH]",
+    "examples": [
+      "git push origin main",
+      "git push -u origin feature-branch",
+      "git push origin --tags"
+    ],
+    "tags": ["remote", "sync"],
+    "flags": [
+      {"flag": "-u", "description": "Set upstream tracking"},
+      {"flag": "--force", "description": "Force push (use with caution)"},
+      {"flag": "--all", "description": "Push all branches"}
+    ]
+  },
+  {
+    "id": 25,
+    "name": "git pull",
+    "category": "Git Bash",
+    "workflow": "Syncing",
+    "description": "Fetch and merge changes from remote repository",
+    "command": "git pull [OPTIONS] [REMOTE] [BRANCH]",
+    "examples": [
+      "git pull origin main",
+      "git pull --rebase origin develop",
+      "git pull origin"
+    ],
+    "tags": ["remote", "sync", "merge"],
+    "flags": [
+      {"flag": "--rebase", "description": "Rebase instead of merge"},
+      {"flag": "-p", "description": "Prune remote-tracking references"}
+    ]
+  },
+  {
+    "id": 26,
+    "name": "git branch",
+    "category": "Git Bash",
+    "workflow": "Branching",
+    "description": "Create, list, or delete branches",
+    "command": "git branch [OPTIONS] [NAME]",
+    "examples": [
+      "git branch",
+      "git branch my-feature",
+      "git branch -d my-feature"
+    ],
+    "tags": ["branch"],
+    "flags": [
+      {"flag": "-a", "description": "List all branches (local and remote)"},
+      {"flag": "-d", "description": "Delete branch"},
+      {"flag": "-D", "description": "Force delete branch"},
+      {"flag": "-m", "description": "Rename branch"}
+    ]
+  },
+  {
+    "id": 27,
+    "name": "git checkout",
+    "category": "Git Bash",
+    "workflow": "Branching",
+    "description": "Switch branches or restore files",
+    "command": "git checkout [OPTIONS] BRANCH|COMMIT",
+    "examples": [
+      "git checkout main",
+      "git checkout -b feature",
+      "git checkout HEAD -- file.txt"
+    ],
+    "tags": ["branch", "switch"],
+    "flags": [
+      {"flag": "-b", "description": "Create and checkout new branch"},
+      {"flag": "-B", "description": "Force create new branch"}
+    ]
+  },
+  {
+    "id": 28,
+    "name": "git switch",
+    "category": "Git Bash",
+    "workflow": "Branching",
+    "description": "Switch branches (newer alternative to checkout)",
+    "command": "git switch [OPTIONS] BRANCH",
+    "examples": [
+      "git switch main",
+      "git switch -c feature",
+      "git switch -"
+    ],
+    "tags": ["branch", "switch"],
+    "flags": [
+      {"flag": "-c", "description": "Create and switch to new branch"},
+      {"flag": "-d", "description": "Detached HEAD mode"}
+    ]
+  },
+  {
+    "id": 29,
+    "name": "git merge",
+    "category": "Git Bash",
+    "workflow": "Branching",
+    "description": "Join branches together",
+    "command": "git merge [OPTIONS] BRANCH",
+    "examples": [
+      "git merge feature",
+      "git merge --no-ff feature",
+      "git merge --squash feature"
+    ],
+    "tags": ["branch", "merge"],
+    "flags": [
+      {"flag": "--no-ff", "description": "Create merge commit even if fast-forward possible"},
+      {"flag": "--squash", "description": "Squash commits before merging"}
+    ]
+  },
+  {
+    "id": 30,
+    "name": "git fetch",
+    "category": "Git Bash",
+    "workflow": "Syncing",
+    "description": "Fetch updates from remote without merging",
+    "command": "git fetch [OPTIONS] [REMOTE] [BRANCH]",
+    "examples": [
+      "git fetch",
+      "git fetch origin",
+      "git fetch --all"
+    ],
+    "tags": ["remote", "sync"],
+    "flags": [
+      {"flag": "--all", "description": "Fetch from all remotes"},
+      {"flag": "-p", "description": "Remove deleted remote branches"}
+    ]
+  },
+  {
+    "id": 31,
+    "name": "git rebase",
+    "category": "Git Bash",
+    "workflow": "Advanced",
+    "description": "Reapply commits on top of another branch (⚠️ Rewrites history)",
+    "command": "git rebase [OPTIONS] BRANCH",
+    "examples": [
+      "git rebase main",
+      "git rebase -i HEAD~3",
+      "git rebase --continue"
+    ],
+    "tags": ["advanced", "history"],
+    "flags": [
+      {"flag": "-i", "description": "Interactive rebase"},
+      {"flag": "--continue", "description": "Continue after resolving conflicts"},
+      {"flag": "--abort", "description": "Abort rebase"}
+    ]
+  },
+  {
+    "id": 32,
+    "name": "git stash",
+    "category": "Git Bash",
+    "workflow": "Temporary Changes",
+    "description": "Temporarily save uncommitted changes",
+    "command": "git stash [COMMAND] [OPTIONS]",
+    "examples": [
+      "git stash",
+      "git stash list",
+      "git stash pop"
+    ],
+    "tags": ["temp", "save"],
+    "flags": [
+      {"flag": "list", "description": "List stashed changes"},
+      {"flag": "pop", "description": "Apply and remove latest stash"},
+      {"flag": "apply", "description": "Apply stash without removing"},
+      {"flag": "drop", "description": "Delete stash"}
+    ]
+  },
+  {
+    "id": 33,
+    "name": "git restore",
+    "category": "Git Bash",
+    "workflow": "Temporary Changes",
+    "description": "Restore working tree files (newer alternative to checkout)",
+    "command": "git restore [OPTIONS] PATH",
+    "examples": [
+      "git restore file.txt",
+      "git restore --staged file.txt",
+      "git restore ."
+    ],
+    "tags": ["undo", "restore"],
+    "flags": [
+      {"flag": "--staged", "description": "Restore from staging area"},
+      {"flag": "-W", "description": "Restore working tree"}
+    ]
+  },
+  {
+    "id": 34,
+    "name": "git reset",
+    "category": "Git Bash",
+    "workflow": "Temporary Changes",
+    "description": "Reset HEAD and working tree (⚠️ Can lose work)",
+    "command": "git reset [OPTIONS] [COMMIT]",
+    "examples": [
+      "git reset HEAD~1",
+      "git reset --hard HEAD~1",
+      "git reset --mixed"
+    ],
+    "tags": ["advanced", "undo"],
+    "flags": [
+      {"flag": "--soft", "description": "Keep working tree and staging area"},
+      {"flag": "--mixed", "description": "Keep working tree (default)"},
+      {"flag": "--hard", "description": "Discard all changes (⚠️)"}
+    ]
+  },
+  {
+    "id": 35,
+    "name": "git remote -v",
+    "category": "Git Bash",
+    "workflow": "Remote Management",
+    "description": "List remote repositories with URLs",
+    "command": "git remote -v",
+    "examples": [
+      "git remote -v",
+      "git remote add origin https://github.com/user/repo.git",
+      "git remote remove origin"
+    ],
+    "tags": ["remote"],
+    "flags": []
+  },
+  {
+    "id": 36,
+    "name": "gh repo create",
+    "category": "GitHub CLI",
+    "workflow": "Repository Management",
+    "description": "Create a new GitHub repository",
+    "command": "gh repo create [NAME] [FLAGS]",
+    "examples": [
+      "gh repo create my-project --public",
+      "gh repo create my-project --private --source=. --remote=origin --push",
+      "gh repo create org/my-project --description 'My project'"
+    ],
+    "tags": ["github", "repo"],
+    "flags": [
+      {"flag": "--public", "description": "Make repository public"},
+      {"flag": "--private", "description": "Make repository private"},
+      {"flag": "--source", "description": "Local path to push"},
+      {"flag": "--remote", "description": "Name for remote"},
+      {"flag": "--push", "description": "Push initial commit"}
+    ]
+  },
+  {
+    "id": 37,
+    "name": "gh repo clone",
+    "category": "GitHub CLI",
+    "workflow": "Repository Management",
+    "description": "Clone a GitHub repository",
+    "command": "gh repo clone [HOST/]OWNER/REPO [DIRECTORY]",
+    "examples": [
+      "gh repo clone user/repo",
+      "gh repo clone user/repo my-folder",
+      "gh repo clone github.com/user/repo"
+    ],
+    "tags": ["github", "repo"],
+    "flags": []
+  },
+  {
+    "id": 38,
+    "name": "gh repo view",
+    "category": "GitHub CLI",
+    "workflow": "Repository Management",
+    "description": "View repository details",
+    "command": "gh repo view [HOST/]OWNER/REPO",
+    "examples": [
+      "gh repo view",
+      "gh repo view user/repo",
+      "gh repo view --web"
+    ],
+    "tags": ["github", "repo"],
+    "flags": [
+      {"flag": "--web", "description": "Open in web browser"}
+    ]
+  },
+  {
+    "id": 39,
+    "name": "gh pr create",
+    "category": "GitHub CLI",
+    "workflow": "Pull Request Workflow",
+    "description": "Create a pull request",
+    "command": "gh pr create [FLAGS]",
+    "examples": [
+      "gh pr create --title 'Fix typo' --body 'Fixes #123'",
+      "gh pr create -B main -H feature-branch",
+      "gh pr create --draft --title 'WIP: New feature'"
+    ],
+    "tags": ["github", "pr"],
+    "flags": [
+      {"flag": "--title", "description": "PR title"},
+      {"flag": "--body", "description": "PR description"},
+      {"flag": "-B", "description": "Base branch"},
+      {"flag": "-H", "description": "Head branch"},
+      {"flag": "--draft", "description": "Create as draft PR"}
+    ]
+  },
+  {
+    "id": 40,
+    "name": "gh pr view",
+    "category": "GitHub CLI",
+    "workflow": "Pull Request Workflow",
+    "description": "View a pull request",
+    "command": "gh pr view [FLAGS]",
+    "examples": [
+      "gh pr view 123",
+      "gh pr view --web",
+      "gh pr view --json title,author"
+    ],
+    "tags": ["github", "pr"],
+    "flags": [
+      {"flag": "--web", "description": "Open in web browser"},
+      {"flag": "--json", "description": "Output as JSON"}
+    ]
+  },
+  {
+    "id": 41,
+    "name": "gh pr merge",
+    "category": "GitHub CLI",
+    "workflow": "Pull Request Workflow",
+    "description": "Merge a pull request",
+    "command": "gh pr merge [PR_NUMBER] [FLAGS]",
+    "examples": [
+      "gh pr merge 123",
+      "gh pr merge 123 --squash",
+      "gh pr merge 123 --rebase"
+    ],
+    "tags": ["github", "pr"],
+    "flags": [
+      {"flag": "--squash", "description": "Squash commits when merging"},
+      {"flag": "--rebase", "description": "Rebase commits when merging"},
+      {"flag": "--delete-branch", "description": "Delete branch after merge"}
+    ]
+  },
+  {
+    "id": 42,
+    "name": "gh pr list",
+    "category": "GitHub CLI",
+    "workflow": "Pull Request Workflow",
+    "description": "List pull requests",
+    "command": "gh pr list [FLAGS]",
+    "examples": [
+      "gh pr list",
+      "gh pr list --state open",
+      "gh pr list --assignee @me"
+    ],
+    "tags": ["github", "pr"],
+    "flags": [
+      {"flag": "--state", "description": "Filter by state (open, closed, merged, all)"},
+      {"flag": "--assignee", "description": "Filter by assignee"},
+      {"flag": "--label", "description": "Filter by label"}
+    ]
+  },
+  {
+    "id": 43,
+    "name": "gh pr checkout",
+    "category": "GitHub CLI",
+    "workflow": "Pull Request Workflow",
+    "description": "Checkout a pull request locally",
+    "command": "gh pr checkout [PR_NUMBER]",
+    "examples": [
+      "gh pr checkout 123",
+      "gh pr checkout"
+    ],
+    "tags": ["github", "pr"],
+    "flags": []
+  },
+  {
+    "id": 44,
+    "name": "gh issue create",
+    "category": "GitHub CLI",
+    "workflow": "Issue Management",
+    "description": "Create a GitHub issue",
+    "command": "gh issue create [FLAGS]",
+    "examples": [
+      "gh issue create --title 'Bug found' --body 'Description'",
+      "gh issue create -t 'Title' -l bug"
+    ],
+    "tags": ["github", "issue"],
+    "flags": [
+      {"flag": "--title", "description": "Issue title"},
+      {"flag": "--body", "description": "Issue description"},
+      {"flag": "-l", "description": "Add labels"}
+    ]
+  },
+  {
+    "id": 45,
+    "name": "gh issue list",
+    "category": "GitHub CLI",
+    "workflow": "Issue Management",
+    "description": "List issues in repository",
+    "command": "gh issue list [FLAGS]",
+    "examples": [
+      "gh issue list",
+      "gh issue list --state=open",
+      "gh issue list --label='bug' --label='help wanted'"
+    ],
+    "tags": ["github", "issue"],
+    "flags": [
+      {"flag": "--state", "description": "Filter by state (open, closed, all)"},
+      {"flag": "--label", "description": "Filter by label"},
+      {"flag": "--assignee", "description": "Filter by assignee"}
+    ]
+  }
+]

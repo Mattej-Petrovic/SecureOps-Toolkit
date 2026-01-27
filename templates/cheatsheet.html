@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Command Guide - SecureOps Toolkit{% endblock %}
+
+{% block content %}
+<div x-data="cheatsheetApp()" class="space-y-6">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2">Command Guide</h1>
+        <p class="text-gray-400">Essential commands for Docker, Git, and GitHub CLI</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-8">
+        <div class="relative">
+            <input 
+                type="text" 
+                x-model="search" 
+                placeholder="Search commands..." 
+                class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+            >
+            <svg class="absolute right-3 top-3 h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4">
+        <span class="text-xs text-gray-500 self-center mr-4">TOOLS:</span>
+        <template x-for="category in categories" :key="category">
+            <button
+                @click="selectedCategory = category; selectedWorkflow = null"
+                :class="selectedCategory === category ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-400 hover:text-gray-300'"
+                class="pb-2 px-4 smooth-hover transition-colors text-sm"
+                x-text="category"
+            ></button>
+        </template>
+    </div>
+
+    <!-- Workflow Filter (when category selected) -->
+    <template x-if="selectedCategory !== 'All' && workflowsForCategory.length > 0">
+        <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-700/50 pb-4">
+            <span class="text-xs text-gray-500 self-center mr-4">WORKFLOWS:</span>
+            <button
+                @click="selectedWorkflow = null"
+                :class="selectedWorkflow === null ? 'bg-blue-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
+                class="px-3 py-1 rounded text-xs smooth-hover transition-colors"
+            >
+                All Workflows
+            </button>
+            <template x-for="workflow in workflowsForCategory" :key="workflow">
+                <button
+                    @click="selectedWorkflow = workflow"
+                    :class="selectedWorkflow === workflow ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
+                    class="px-3 py-1 rounded text-xs smooth-hover transition-colors"
+                    x-text="workflow"
+                ></button>
+            </template>
+        </div>
+    </template>
+
+    <!-- Commands Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+        <template x-for="command in filteredCommands" :key="command.id">
+            <div x-data="{ open: false }" class="group bg-slate-800 border border-slate-700 rounded-lg hover:border-blue-400 smooth-hover overflow-hidden">
+                <!-- Command Header -->
+                <div 
+                    @click="open = !open"
+                    class="p-4 cursor-pointer bg-slate-750 hover:bg-slate-700 smooth-hover"
+                >
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-mono font-bold text-blue-300 text-lg" x-text="command.name"></h3>
+                            <p class="text-gray-400 text-sm mt-1" x-text="command.description"></p>
+                        </div>
+                        <svg 
+                            class="h-5 w-5 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Tags and Workflow -->
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <template x-if="command.workflow">
+                            <span class="inline-block bg-cyan-500/20 text-cyan-300 text-xs px-2 py-1 rounded" x-text="command.workflow"></span>
+                        </template>
+                        <template x-for="tag in command.tags || []" :key="tag">
+                            <span class="inline-block bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded" x-text="tag"></span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Command Details (Expandable) -->
+                <div 
+                    x-show="open"
+                    class="slide-enter"
+                >
+                    <div class="px-4 py-4 border-t border-slate-700 space-y-4">
+                        <!-- Command -->
+                        <div>
+                            <h4 class="text-gray-300 font-semibold text-sm mb-2">Command</h4>
+                            <div class="bg-slate-900 p-3 rounded font-mono text-sm text-green-300 break-all relative group">
+                                <code x-text="command.command"></code>
+                                <button 
+                                    @click="copyToClipboard(command.command)"
+                                    class="absolute right-2 top-2 hidden group-hover:block bg-slate-700 hover:bg-blue-600 p-2 rounded transition-colors"
+                                    title="Copy to clipboard"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Flags & Options -->
+                        <template x-if="command.flags && command.flags.length > 0">
+                            <div>
+                                <h4 class="text-gray-300 font-semibold text-sm mb-2">Flags & Options</h4>
+                                <div class="space-y-2">
+                                    <template x-for="flag in command.flags" :key="flag.flag">
+                                        <div class="bg-slate-900 p-3 rounded text-sm border-l-2 border-cyan-400">
+                                            <div class="flex justify-between items-start gap-2">
+                                                <code class="text-cyan-300 font-mono" x-text="flag.flag"></code>
+                                                <button 
+                                                    @click="copyToClipboard(flag.flag)"
+                                                    class="text-xs bg-slate-700 hover:bg-blue-600 text-gray-300 px-2 py-1 rounded transition-colors"
+                                                    title="Copy flag"
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <p class="text-gray-400 text-xs mt-1" x-text="flag.description"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Examples -->
+                        <template x-if="command.examples && command.examples.length > 0">
+                            <div>
+                                <h4 class="text-gray-300 font-semibold text-sm mb-2">Examples</h4>
+                                <div class="space-y-2">
+                                    <template x-for="(example, index) in command.examples" :key="index">
+                                        <div class="bg-slate-900 p-3 rounded font-mono text-sm text-amber-300 break-all relative group">
+                                            <code x-text="example"></code>
+                                            <button 
+                                                @click="copyToClipboard(example)"
+                                                class="absolute right-2 top-2 hidden group-hover:block bg-slate-700 hover:bg-blue-600 p-2 rounded transition-colors"
+                                                title="Copy to clipboard"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- No results -->
+    <template x-if="filteredCommands.length === 0">
+        <div class="text-center py-12">
+            <p class="text-gray-400 text-lg">No commands found. Try a different search.</p>
+        </div>
+    </template>
+</div>
+
+<script>
+function cheatsheetApp() {
+    return {
+        commands: {{ commands|tojson }},
+        search: '',
+        selectedCategory: 'All',
+        selectedWorkflow: null,
+        expanded: {},
+
+        init() {
+            // Initialize expanded state from commands
+            this.commands.forEach(cmd => {
+                this.$watch('expanded', () => {}, { deep: true });
+            });
+        },
+
+        get categories() {
+            const cats = new Set(['All']);
+            this.commands.forEach(cmd => cats.add(cmd.category));
+            return Array.from(cats);
+        },
+
+        get workflowsForCategory() {
+            if (this.selectedCategory === 'All') return [];
+            const workflows = new Set();
+            this.commands
+                .filter(cmd => cmd.category === this.selectedCategory)
+                .forEach(cmd => {
+                    if (cmd.workflow) workflows.add(cmd.workflow);
+                });
+            return Array.from(workflows).sort();
+        },
+
+        get filteredCommands() {
+            let filtered = this.commands;
+            
+            if (this.selectedCategory !== 'All') {
+                filtered = filtered.filter(cmd => cmd.category === this.selectedCategory);
+            }
+            
+            if (this.selectedWorkflow) {
+                filtered = filtered.filter(cmd => cmd.workflow === this.selectedWorkflow);
+            }
+            
+            if (this.search) {
+                const searchLower = this.search.toLowerCase();
+                filtered = filtered.filter(cmd => 
+                    cmd.name.toLowerCase().includes(searchLower) ||
+                    cmd.description.toLowerCase().includes(searchLower) ||
+                    cmd.command.toLowerCase().includes(searchLower) ||
+                    (cmd.examples && cmd.examples.some(ex => ex.toLowerCase().includes(searchLower))) ||
+                    (cmd.tags && cmd.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+                    (cmd.workflow && cmd.workflow.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            return filtered;
+        },
+
+        toggleCommand(id) {
+            // Simple toggle - set or unset the expanded state
+            if (this.expanded[id]) {
+                delete this.expanded[id];
+            } else {
+                this.expanded[id] = true;
+            }
+        },
+
+        copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Command copied to clipboard!');
+            });
+        }
+    };
+}
+</script>
+{% endblock %}
