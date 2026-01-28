@@ -59,6 +59,73 @@
         .severity-badge {
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         }
+
+        /* CRITICAL badge stripes pulse (always visible difference) */
+        @keyframes criticalStripesMove {
+            from { background-position: 0 0; }
+            to { background-position: 24px 24px; }
+        }
+
+        .critical-badge-pulse {
+            display: inline-block;
+            position: relative;
+
+            /* Always visible stripes */
+            background-image: repeating-linear-gradient(
+                135deg,
+                rgba(255,255,255,0.22) 0px,
+                rgba(255,255,255,0.22) 6px,
+                rgba(255,255,255,0.08) 6px,
+                rgba(255,255,255,0.08) 12px
+            );
+            background-size: 24px 24px;
+
+            /* Subtle premium look */
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+            padding-right: 1.1rem;
+
+            /* Optional motion */
+            animation: criticalStripesMove 3.0s linear infinite;
+        }
+
+        .critical-badge-pulse::after {
+            content: "";
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            width: 6px;
+            height: 6px;
+            margin-top: -3px;
+            border-radius: 9999px;
+            background: rgba(255,255,255,0.95);
+            opacity: 0.85;
+        }
+
+        /* (old glow styles removed to avoid conflicts) */
+
+        /* CRITICAL: tydlig halo runt hela kortet (subtil, långsam puls) */
+        @keyframes criticalHaloPulse {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 60, 60, 0.20)) drop-shadow(0 0 0px rgba(255, 60, 60, 0.00)); }
+            50%      { filter: drop-shadow(0 0 18px rgba(255, 60, 60, 0.38)) drop-shadow(0 0 6px rgba(255, 60, 60, 0.18)); }
+        }
+
+        .critical-halo {
+            will-change: filter;
+            animation: criticalHaloPulse 3.6s ease-in-out infinite;
+        }
+
+        /* CRITICAL badge ska vara solid, aldrig randig */
+        .critical-badge-solid {
+            background-image: none !important;
+            box-shadow: 0 0 0 1px rgba(255, 90, 90, 0.35), 0 0 10px rgba(255, 60, 60, 0.22);
+        }
+
+        /* Neutralize older experimental classes so they don't affect the badge */
+        .critical-badge-pulse,
+        .critical-badge-glow,
+        .critical-attention {
+            background-image: none !important;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100 min-h-screen">

@@ -150,7 +150,7 @@
                     <div 
                         x-data="{ detailsOpen: false }"
                         class="border rounded-lg overflow-hidden relative smooth-hover transition-transform duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/30"
-                        :class="getSeverityClass(finding.severity)"
+                        :class="getSeverityClass(finding.severity) + (((finding.severity || '') + '').toLowerCase() === 'critical' ? ' critical-halo' : '')"
                         :style="getSeverityCardStyle(finding.severity)"
                     >
                         <div class="absolute inset-0 bg-black/45 pointer-events-none rounded-lg"></div>
@@ -163,7 +163,7 @@
                             <div class="flex items-start space-x-3 flex-1 text-left">
                                 <span 
                                     class="inline-block px-2 py-1 rounded text-xs font-semibold mt-0.5 severity-badge"
-                                    :class="getSeverityTagClass(finding.severity)"
+                                    :class="getSeverityTagClass(finding.severity) + (((finding.severity || '') + '').toLowerCase() === 'critical' ? ' critical-badge-solid' : '')"
                                     :style="getSeverityTagStyle(finding.severity)"
                                     x-text="finding.severity.toUpperCase()"
                                 ></span>
@@ -337,10 +337,10 @@ function analyzerApp() {
 
         getSeverityTagStyle(severity) {
             if ((severity || '').toLowerCase() === 'critical') {
-                return 'background:#B71C1C;border:1px solid #B71C1C;color:#FFFFFF;';
+                return 'background-color:#B71C1C;border:1px solid #B71C1C;color:#FFFFFF;';
             }
             if ((severity || '').toLowerCase() === 'high') {
-                return 'background:#D32F2F;color:#FFFFFF;';
+                return 'background-color:#D32F2F;color:#FFFFFF;';
             }
             return '';
         },
