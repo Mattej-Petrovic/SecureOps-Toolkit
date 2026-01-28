@@ -6,7 +6,19 @@
 <div x-data="analyzerApp()" class="space-y-6">
     <div class="text-center mb-8">
         <h1 class="text-4xl font-bold mb-2">Log Analyzer</h1>
-        <p class="text-gray-400">Upload log files to detect suspicious activity and security events</p>
+        <p class="text-gray-400">Analyze logs to detect suspicious activity and security events</p>
+    </div>
+
+    <!-- Input Method Tabs -->
+    <div class="flex items-center justify-center mb-2">
+        <div class="inline-flex bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+            <button @click="activeTab = 'file'"
+                :class="activeTab === 'file' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white hover:bg-slate-700'"
+                class="px-4 py-2 text-sm font-medium smooth-hover">Upload File</button>
+            <button @click="activeTab = 'text'"
+                :class="activeTab === 'text' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white hover:bg-slate-700'"
+                class="px-4 py-2 text-sm font-medium smooth-hover">Paste Text</button>
+        </div>
     </div>
 
     <!-- How Analysis Works Section -->
@@ -40,22 +52,14 @@
         </ul>
     </div>
 
-    <!-- Upload Section -->
-    <div class="bg-slate-800 border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-slate-800/50 transition-all cursor-pointer" 
+    <!-- Upload Section (Tab: Upload File) -->
+    <div x-show="activeTab === 'file'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+         class="bg-slate-800 border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-slate-800/50 transition-all cursor-pointer"
          @drop.prevent="handleFileDrop"
          @dragover.prevent="isDragging = true"
          @dragleave="isDragging = false"
          :class="isDragging ? 'border-blue-400 bg-blue-500/10' : ''">
-        
-        <input 
-            type="file" 
-            @change="handleFileSelect" 
-            accept=".log,.txt" 
-            class="hidden"
-            x-ref="fileInput"
-            id="fileInput"
-        >
-        
+        <input type="file" @change="handleFileSelect" accept=".log,.txt" class="hidden" x-ref="fileInput" id="fileInput">
         <div @click="$refs.fileInput.click()" class="cursor-pointer">
             <svg class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -66,12 +70,23 @@
         </div>
     </div>
 
+    <!-- Paste Text Section (Tab: Paste Text) -->
+    <div x-show="activeTab === 'text'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+         class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+        <label for="logTextArea" class="block text-sm font-medium text-gray-300 mb-2">Paste log text</label>
+        <textarea id="logTextArea" x-model="textInput" placeholder="Paste log lines here..." class="w-full h-64 p-4 bg-slate-900 text-gray-100 border border-slate-700 rounded font-mono resize-y placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        <div class="flex items-center justify-between mt-3">
+            <p class="text-xs text-gray-400">Tip: You can paste mixed English/Swedish logs.</p>
+            <button @click="analyzeText()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm smooth-hover">Analyze Text</button>
+        </div>
+    </div>
+
     <!-- Status Messages -->
     <template x-if="loading">
         <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4 text-blue-300 text-center">
             <div class="flex items-center justify-center space-x-2">
                 <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                <span>Analyzing log file...</span>
+                <span>Analyzing...</span>
             </div>
         </div>
     </template>
@@ -205,7 +220,7 @@
                     @click="clearResults()"
                     class="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded text-sm smooth-hover transition-colors"
                 >
-                    Analyze Another File
+                    New Analysis
                 </button>
             </div>
         </div>
@@ -228,6 +243,8 @@ function analyzerApp() {
         uploadSuccess: false,
         findings: [],
         isDragging: false,
+        activeTab: 'file',
+        textInput: '',
         severityFilter: null,
 
         get findingsByType() {
@@ -305,6 +322,46 @@ function analyzerApp() {
             }
         },
 
+        async analyzeText() {
+            const raw = this.textInput || '';
+            const trimmed = raw.trim();
+            this.error = '';
+
+            if (!trimmed) {
+                this.error = 'Please paste some log text.';
+                return;
+            }
+            if (raw.length > 200000) {
+                this.error = 'Text is too long (max 200,000 characters).';
+                return;
+            }
+
+            this.loading = true;
+            this.uploadSuccess = false;
+            try {
+                const response = await fetch('/analyze-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ log_text: raw })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    this.error = data.error || 'An error occurred during analysis';
+                } else {
+                    this.findings = (data.findings || []).map(f => ({
+                        ...f,
+                        severity: String(f.severity || '').toLowerCase()
+                    }));
+                    this.uploadSuccess = true;
+                    this.error = '';
+                }
+            } catch (err) {
+                this.error = 'Network error: ' + err.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
         getSeverityClass(severity) {
             const map = {
                 'critical': 'border-gray-500/30',
@@ -358,6 +415,7 @@ function analyzerApp() {
             this.findings = [];
             this.uploadSuccess = false;
             this.$refs.fileInput.value = '';
+            this.textInput = '';
         }
     };
 }

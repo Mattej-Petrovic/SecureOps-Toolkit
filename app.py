@@ -52,6 +52,35 @@ def analyze():
     
     return render_template('analyze.html')
 
+@app.route('/analyze-text', methods=['POST'])
+def analyze_text():
+    try:
+        # Accept both JSON and form submissions
+        text = ''
+        if request.is_json:
+            payload = request.get_json(silent=True) or {}
+            text = payload.get('log_text', '') if isinstance(payload, dict) else ''
+        else:
+            text = request.form.get('log_text', '')
+
+        if text is None:
+            text = ''
+
+        # Normalize line endings and trim excessive size early
+        # Limit: 200,000 chars
+        if len(text) == 0 or not text.strip():
+            return jsonify({'error': 'Log text is empty. Please paste some log lines.'}), 400
+        if len(text) > 200_000:
+            return jsonify({'error': 'Text is too long (max 200,000 characters).'}), 400
+
+        normalized = text.replace('\r\n', '\n').replace('\r', '\n')
+
+        findings = analyze_log_content(normalized)
+        return jsonify({'findings': findings}), 200
+
+    except Exception as e:
+        return jsonify({'error': 'Error processing text: ' + str(e)}), 500
+
 @app.route('/api/commands')
 def api_commands():
     try:
