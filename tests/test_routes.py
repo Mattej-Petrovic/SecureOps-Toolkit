@@ -115,7 +115,7 @@ class TestRoutes:
             assert 'description' in finding
             assert 'severity' in finding
             assert 'matched_lines' in finding
-            assert finding['severity'] in ['low', 'medium', 'high']
+            assert finding['severity'] in ['low', 'medium', 'high', 'critical']
     
     def test_file_size_limit(self, client):
         """Test at för stor fil returnerar 413"""

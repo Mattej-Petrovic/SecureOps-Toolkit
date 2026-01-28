@@ -1,50 +1,61 @@
 # SecureOps Toolkit
 
-A modern web application designed to help you learn essential DevOps commands and improve your security analysis skills. Features an interactive command reference guide with 45+ Docker, Git, and GitHub CLI commands, plus a rule-based log analyzer that detects common security threats and suspicious activity patterns. Built with Flask, Alpine.js, and Tailwind CSS for a clean, responsive experience.
+Security-first DevOps cheatsheet + a correlation-and risk-scoring log analyzer. Built with Flask, Alpine.js, and Tailwind.
 
-## Features
+## Highlights
 
-- **Command Guide** — 45+ Docker, Git, and GitHub CLI commands with descriptions, flags, and usage examples
-- **Log Analyzer** — Upload log files to detect security issues: failed logins, SSH attacks, privilege escalation, and more
-- **Search & Filter** — Find commands by name, category, or workflow
-- **Language Support** — Security detection in English and Swedish
-- **Responsive Design** — Works on desktop, tablet, and mobile
+- Command Guide: 45+ Docker, Git, and GitHub CLI commands with usage tips
+- Risk-scored Log Analyzer (English + Swedish)
+- Deterministic normalization (priority-based), allowlists, and single-escaped log lines
+- Correlation rules: brute-force, password spraying, fail→success, WAF+auth, multi-port scans
+- Deduplicated findings per rule + entity (clean, non-duplicated results)
 
 ## Quick Start
 
-1. **Clone & setup** (requires Python 3.12+):
-   ```bash
-   git clone <repo-url>
-   cd DevSecOps-App
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   python app.py
-   ```
-
-2. **Open** `http://localhost:5000`
-
-## Run with Docker
-
+Python (3.12+)
 ```bash
+git clone <repo-url>
+cd SecureOps-Toolkit
+python -m venv .venv
+.venv/Scripts/activate  # Windows
+# source .venv/bin/activate  # macOS/Linux
+pip install -r requirements.txt
+python app.py
+```
+
+Docker
+```bash
+# Compose v2
+docker compose up --build
+# or Compose v1
 docker-compose up --build
 ```
-Or build manually: `docker build -t secureops-toolkit . && docker run -p 5000:5000 secureops-toolkit`
+
+Open http://localhost:5000
+
+## How Analysis Works (short)
+
+- Parse: timestamps, level, service, and key=value (incl. quoted values)
+- Normalize: Swedish/English phrases → unified event types via fixed priority
+- Score: risk per IP/user → severity (low/medium/high/critical)
+- Correlate: time-window rules + dedup per rule/entity; matched_lines merged
 
 ## Testing
 
-Run all tests: `pytest tests/` (30 tests covering commands, log analysis, and routes)
+```bash
+pytest -q
+```
 
-## Project Structure
+## Structure
 
 ```
-app.py                     Main Flask application
-data/commands.json         Command database (45 entries)
-templates/                 HTML pages (base, cheatsheet, analyze)
-services/log_analyzer.py   Security detection rules
+app.py                     Main Flask app
+data/commands.json         Command database
+templates/                 UI pages (base, cheatsheet, analyze)
+services/log_analyzer.py   Event normalization, scoring, correlation
 tests/                     Automated tests
-Dockerfile                 Container configuration
-requirements.txt           Python dependencies
+Dockerfile                 Container build
+requirements.txt           Python deps
 ```
 
 ## License

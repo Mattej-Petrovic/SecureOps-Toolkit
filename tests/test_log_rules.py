@@ -5,7 +5,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from services.log_analyzer import analyze_log_content, LogAnalyzerRules
+from services.log_analyzer import analyze_log_content
 
 
 class TestLogRules:
@@ -110,8 +110,12 @@ class TestLogRules:
         # Kontrollera att < och > är escapade
         for finding in findings:
             for line in finding['matched_lines']:
-                assert '<script>' not in line
-                assert '&lt;' in line or '&amp;' in line
+                # Matched lines should be shown as plain text once, not double-escaped
+                # We should not see &lt; or &amp;quot
+                assert '&lt;' not in line
+                assert '&amp;quot' not in line and '&quot;' not in line
+                # Literal characters should be visible as text
+                assert '<' in line or '"' in line or "'" in line
     
     def test_empty_log(self):
         """Test att tom logg hanteras korrekt"""
@@ -126,27 +130,28 @@ class TestLogRules:
         assert isinstance(findings, list)
 
 
-class TestLogAnalyzerRules:
-    """Testar individuella reglemetoder"""
-    
+class TestAnalyzerScoring:
+    """Testar scoring och trösklar"""
+
     def test_failed_login_threshold(self):
         """Test tröskel för misslyckade inloggningar"""
         lines = ["Failed password" for _ in range(5)]
-        findings = LogAnalyzerRules.failed_login_attempts(lines)
-        assert len(findings) == 0  # Under tröskeln
-        
+        findings = analyze_log_content("\n".join(lines))
+        assert not any(f['rule_name'] == 'Upprepade misslyckade inloggningar' for f in findings)
+
         lines = ["Failed password" for _ in range(10)]
-        findings = LogAnalyzerRules.failed_login_attempts(lines)
-        assert len(findings) > 0
-        assert findings[0]['severity'] == 'medium'
-    
+        findings = analyze_log_content("\n".join(lines))
+        ups = [f for f in findings if f['rule_name'] == 'Upprepade misslyckade inloggningar']
+        assert len(ups) > 0
+        assert ups[0]['severity'] in ['medium', 'high', 'critical']
+
     def test_severity_levels(self):
         """Test att severity nivåer är korrekt satta"""
         log_content = "Failed password " * 30
         findings = analyze_log_content(log_content)
         
         for finding in findings:
-            assert finding['severity'] in ['low', 'medium', 'high']
+            assert finding['severity'] in ['low', 'medium', 'high', 'critical']
 
 
 class TestSwedishLanguageSupport:

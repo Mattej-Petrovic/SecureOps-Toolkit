@@ -15,19 +15,23 @@
         <ul class="space-y-2 text-sm text-gray-400">
             <li class="flex items-start space-x-3">
                 <span class="text-blue-400 font-bold">•</span>
-                <span><strong>Rule-Based Matching:</strong> The analyzer uses pattern matching to identify common security issues in logs.</span>
+                <span><strong>Event Parsing:</strong> Extracts timestamp, level, service, and key=value fields, including quoted values like key="value with spaces". Remaining text is kept as message.</span>
             </li>
             <li class="flex items-start space-x-3">
                 <span class="text-blue-400 font-bold">•</span>
-                <span><strong>What It Detects:</strong> Failed login attempts, SSH authentication failures, sudo usage, user account changes, suspicious IP patterns, brute-force indicators, privilege escalation attempts, and file access anomalies.</span>
+                <span><strong>Deterministic Normalization:</strong> Maps Swedish and English phrases to event types using a fixed priority (e.g. privilege_change > account_lockout > WAF > auth_fail > ...).</span>
             </li>
             <li class="flex items-start space-x-3">
                 <span class="text-blue-400 font-bold">•</span>
-                <span><strong>Severity Levels:</strong> Findings are classified as high, medium, or low priority based on patterns detected.</span>
+                <span><strong>Risk Scoring per Entity:</strong> Scores are accumulated per IP and per user from atomic indicators and correlations.</span>
             </li>
             <li class="flex items-start space-x-3">
                 <span class="text-blue-400 font-bold">•</span>
-                <span><strong>Limitations:</strong> This is not a full SIEM. It may produce false positives and should not be the only security monitoring tool.</span>
+                <span><strong>Correlation Windows:</strong> Time-based rules relate events within minutes (e.g. brute-force, spraying, fail→success, WAF+auth, multi-port scans).</span>
+            </li>
+            <li class="flex items-start space-x-3">
+                <span class="text-blue-400 font-bold">•</span>
+                <span><strong>Allowlists & Tuning:</strong> Localhost, health endpoints, and optional internal ranges can be allowlisted. Thresholds and scores are configurable.</span>
             </li>
             <li class="flex items-start space-x-3">
                 <span class="text-blue-400 font-bold">•</span>
@@ -91,6 +95,8 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-2xl font-bold">Analysis Results</h2>
                 <div class="text-sm text-gray-400">
+                    <span x-text="`${findingsByType.critical.length} critical`"></span>
+                    <span class="mx-2">|</span>
                     <span x-text="`${findingsByType.high.length} high priority`"></span>
                     <span class="mx-2">|</span>
                     <span x-text="`${findingsByType.medium.length} medium`"></span>
@@ -107,6 +113,13 @@
                     class="px-3 py-2 rounded text-sm smooth-hover transition-colors"
                 >
                     All
+                </button>
+                <button 
+                    @click="severityFilter = 'critical'"
+                    :class="severityFilter === 'critical' ? 'bg-red-700 text-white' : 'bg-slate-700 text-gray-300 hover:bg-slate-600'"
+                    class="px-3 py-2 rounded text-sm smooth-hover transition-colors"
+                >
+                    Critical
                 </button>
                 <button 
                     @click="severityFilter = 'high'"
@@ -137,19 +150,21 @@
                     <div 
                         x-data="{ detailsOpen: false }"
                         class="border rounded-lg overflow-hidden relative smooth-hover transition-transform duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/30"
-                        :class="getSeverityClass(finding.severity)"
+                        :class="getSeverityClass(finding.severity) + (((finding.severity || '') + '').toLowerCase() === 'critical' ? ' critical-halo' : '')"
+                        :style="getSeverityCardStyle(finding.severity)"
                     >
                         <div class="absolute inset-0 bg-black/45 pointer-events-none rounded-lg"></div>
                         <div class="relative z-10">
                             <button
                                 @click="detailsOpen = !detailsOpen"
-                                class="w-full px-4 py-3 flex items-center justify-between bg-opacity-50 smooth-hover"
+                                class="w-full px-4 py-3 flex items-center justify-between bg-opacity-50 smooth-hover severity-card-header"
                                 :class="getSeverityBgClass(finding.severity)"
                             >
                             <div class="flex items-start space-x-3 flex-1 text-left">
                                 <span 
-                                    class="inline-block px-2 py-1 rounded text-xs font-semibold mt-0.5"
-                                    :class="getSeverityTagClass(finding.severity)"
+                                    class="inline-block px-2 py-1 rounded text-xs font-semibold mt-0.5 severity-badge"
+                                    :class="getSeverityTagClass(finding.severity) + (((finding.severity || '') + '').toLowerCase() === 'critical' ? ' critical-badge-solid' : '')"
+                                    :style="getSeverityTagStyle(finding.severity)"
                                     x-text="finding.severity.toUpperCase()"
                                 ></span>
                                 <div>
@@ -170,11 +185,11 @@
 
                         <!-- Details -->
                         <div x-show="detailsOpen" class="slide-enter">
-                            <div class="px-4 py-3 bg-opacity-20" :class="getSeverityBgClass(finding.severity)">
+                            <div class="px-4 py-3 bg-opacity-20">
                                 <h4 class="text-sm font-semibold mb-2 text-gray-300">Matched log lines:</h4>
                                 <div class="space-y-1">
                                     <template x-for="(line, i) in finding.matched_lines" :key="i">
-                                        <div class="bg-slate-900 p-2 rounded text-xs font-mono text-gray-300 break-all overflow-auto" x-text="escapeHtml(line)"></div>
+                                        <div class="bg-slate-900 p-2 rounded text-xs font-mono text-gray-300 break-all overflow-auto" x-text="line"></div>
                                     </template>
                                 </div>
                             </div>
@@ -217,6 +232,7 @@ function analyzerApp() {
 
         get findingsByType() {
             return {
+                critical: this.findings.filter(f => f.severity === 'critical'),
                 high: this.findings.filter(f => f.severity === 'high'),
                 medium: this.findings.filter(f => f.severity === 'medium'),
                 low: this.findings.filter(f => f.severity === 'low')
@@ -275,7 +291,10 @@ function analyzerApp() {
                 if (!response.ok) {
                     this.error = data.error || 'An error occurred during analysis';
                 } else {
-                    this.findings = data.findings;
+                    this.findings = (data.findings || []).map(f => ({
+                        ...f,
+                        severity: String(f.severity || '').toLowerCase()
+                    }));
                     this.uploadSuccess = true;
                     this.error = '';
                 }
@@ -288,6 +307,7 @@ function analyzerApp() {
 
         getSeverityClass(severity) {
             const map = {
+                'critical': 'border-gray-500/30',
                 'high': 'border-red-500/30',
                 'medium': 'border-amber-500/30',
                 'low': 'border-green-500/30'
@@ -297,7 +317,8 @@ function analyzerApp() {
 
         getSeverityBgClass(severity) {
             const map = {
-                'high': 'bg-red-500',
+                'critical': 'bg-red-900',
+                'high': 'bg-red-700',
                 'medium': 'bg-amber-500',
                 'low': 'bg-green-500'
             };
@@ -306,23 +327,32 @@ function analyzerApp() {
 
         getSeverityTagClass(severity) {
             const map = {
-                'high': 'bg-red-600 text-white font-bold px-2.5 py-1 rounded',
+                'critical': 'text-white font-bold px-2.5 py-1 rounded',
+                'high': 'text-white font-bold px-2.5 py-1 rounded',
                 'medium': 'bg-amber-600 text-white font-bold px-2.5 py-1 rounded',
                 'low': 'bg-green-600 text-white font-bold px-2.5 py-1 rounded'
             };
             return map[severity] || 'bg-gray-700 text-gray-100 font-bold px-2.5 py-1 rounded';
         },
 
-        escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+        getSeverityTagStyle(severity) {
+            if ((severity || '').toLowerCase() === 'critical') {
+                return 'background-color:#B71C1C;border:1px solid #B71C1C;color:#FFFFFF;';
+            }
+            if ((severity || '').toLowerCase() === 'high') {
+                return 'background-color:#D32F2F;color:#FFFFFF;';
+            }
+            return '';
         },
+
+        getSeverityCardStyle(severity) {
+            if ((severity || '').toLowerCase() === 'critical') {
+                return 'border-left: 6px solid #B71C1C;';
+            }
+            return '';
+        },
+
+        // Backend already HTML-escapes matched_lines exactly once; keep x-text="line" to avoid double-escaping.
 
         clearResults() {
             this.findings = [];
