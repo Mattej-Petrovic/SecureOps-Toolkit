@@ -46,18 +46,6 @@ Open http://localhost:5000
 pytest -q
 ```
 
-## Structure
-
-```
-app.py                     Main Flask app
-data/commands.json         Command database
-templates/                 UI pages (base, cheatsheet, analyze)
-services/log_analyzer.py   Event normalization, scoring, correlation
-tests/                     Automated tests
-Dockerfile                 Container build
-requirements.txt           Python deps
-```
-
 ## License
 
 MIT
