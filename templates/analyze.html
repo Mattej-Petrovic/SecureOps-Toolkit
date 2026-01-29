@@ -161,7 +161,7 @@
 
             <!-- Findings List -->
             <div class="space-y-3">
-                <template x-for="(finding, index) in filteredFindings" :key="index">
+                <template x-for="(finding, index) in filteredFindings" :key="finding.id || index">
                     <div 
                         x-data="{ detailsOpen: false }"
                         class="border rounded-lg overflow-hidden relative smooth-hover transition-transform duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/30"
@@ -184,7 +184,7 @@
                                 ></span>
                                 <div>
                                     <p class="font-semibold text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.55);" x-text="finding.display_name ? finding.display_name : finding.rule_name"></p>
-                                    <p class="text-sm text-white" x-text="finding.description"></p>
+                                    <p class="text-sm text-white" x-text="finding.summary ? finding.summary : finding.description"></p>
                                 </div>
                             </div>
                             <svg 
@@ -199,8 +199,22 @@
                         </button>
 
                         <!-- Details -->
-                        <div x-show="detailsOpen" class="slide-enter">
+                        <div x-show="detailsOpen" x-cloak class="slide-enter">
                             <div class="px-4 py-3 bg-opacity-20">
+                                <template x-if="finding.details && String(finding.details).trim().length">
+                                    <div class="mb-3">
+                                        <h4 class="text-sm font-semibold mb-2 text-gray-300">Details:</h4>
+                                        <div class="bg-slate-900 p-2 rounded text-xs text-gray-200 whitespace-pre-wrap break-words" x-text="finding.details"></div>
+                                    </div>
+                                </template>
+
+                                <template x-if="(!finding.details || !String(finding.details).trim().length) && finding.summary && finding.description">
+                                    <div class="mb-3">
+                                        <h4 class="text-sm font-semibold mb-2 text-gray-300">Details:</h4>
+                                        <div class="bg-slate-900 p-2 rounded text-xs text-gray-200 whitespace-pre-wrap break-words" x-text="finding.description"></div>
+                                    </div>
+                                </template>
+
                                 <h4 class="text-sm font-semibold mb-2 text-gray-300">Matched log lines:</h4>
                                 <div class="space-y-1">
                                     <template x-for="(line, i) in finding.matched_lines" :key="i">
