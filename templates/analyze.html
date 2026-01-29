@@ -164,15 +164,15 @@
                 <template x-for="(finding, index) in filteredFindings" :key="index">
                     <div 
                         x-data="{ detailsOpen: false }"
-                        class="border rounded-lg overflow-hidden relative smooth-hover transition-transform duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-lg hover:shadow-black/30"
+                        class="border rounded-lg overflow-hidden relative smooth-hover transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 hover:ring-1 hover:ring-white/10"
                         :class="getSeverityClass(finding.severity) + (((finding.severity || '') + '').toLowerCase() === 'critical' ? ' critical-halo' : '')"
                         :style="getSeverityCardStyle(finding.severity)"
                     >
-                        <div class="absolute inset-0 bg-black/45 pointer-events-none rounded-lg"></div>
+                        <div class="absolute inset-0 bg-black/60 pointer-events-none rounded-lg"></div>
                         <div class="relative z-10">
                             <button
                                 @click="detailsOpen = !detailsOpen"
-                                class="w-full px-4 py-3 flex items-center justify-between bg-opacity-50 smooth-hover severity-card-header"
+                                class="w-full px-4 py-3 flex items-center justify-between bg-opacity-90 smooth-hover severity-card-header"
                                 :class="getSeverityBgClass(finding.severity)"
                             >
                             <div class="flex items-start space-x-3 flex-1 text-left">
@@ -183,7 +183,7 @@
                                     x-text="finding.severity.toUpperCase()"
                                 ></span>
                                 <div>
-                                    <p class="font-semibold text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.55);" x-text="finding.rule_name"></p>
+                                    <p class="font-semibold text-white" x-text="finding.rule_name"></p>
                                     <p class="text-sm text-white" x-text="finding.description"></p>
                                 </div>
                             </div>
