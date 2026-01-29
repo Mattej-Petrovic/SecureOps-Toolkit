@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
+        /* Prevent Alpine.js FOUC (content flashing before Alpine initializes). */
+        [x-cloak] { display: none !important; }
+
         @keyframes slideDown {
             from {
                 opacity: 0;
